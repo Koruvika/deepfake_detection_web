@@ -1,0 +1,16 @@
+onnx_path: "./assets/checkpoints/FaceBoxesProd.onnx"
+scale_flag: true
+HEIGHT: 720
+WIDTH: 1080
+min_sizes: [[32, 64, 128], [256], [512]]
+name: "FaceBoxes"
+steps: [32, 64, 128]
+variance: [0.1, 0.2]
+clip: false
+resize: 1
+confidence_threshold: 0.05
+top_k: 5000
+keep_top_k: 750
+nms_threshold: 0.3
+vis_threshold: 0.5
+bbox_scale: 0.1

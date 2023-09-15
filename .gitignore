@@ -1,2 +1,41 @@
+# venv
 venv/
 .python-version
+
+
+# cache
+*.pyc
+__pycache__/
+
+
+# Pycharm
+.idea/
+
+
+# image & video
+/assets/images/*
+*.mp4
+*.png
+*.jpg
+*.jpeg
+*.t7
+*.gif
+
+
+# checkpoints
+/assets/checkpoints/*
+*.onnx
+*.pth
+*.pt
+
+
+### Text ###
+*.doc
+*.docx
+*.log
+*.msg
+*.pages
+*.rtf
+*.txt
+*.wpd
+*.wps

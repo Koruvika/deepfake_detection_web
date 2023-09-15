@@ -120,6 +120,8 @@ class FaceBoxes_ONNX:
         else:
             img = np.float32(img_raw)
 
+        # TODO: fix the problem of gray images (2 dimensions)
+
         # forward
         im_height, im_width, _ = img.shape
         scale_bbox = torch.Tensor([img.shape[1], img.shape[0], img.shape[1], img.shape[0]])

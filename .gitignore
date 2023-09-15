@@ -36,6 +36,5 @@ __pycache__/
 *.msg
 *.pages
 *.rtf
-*.txt
 *.wpd
 *.wps

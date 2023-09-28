@@ -3,7 +3,7 @@ import numpy as np
 import onnxruntime
 
 from model.Settings import Settings
-
+import gc
 
 def softmax(x):
     """Compute softmax values for each sets of scores in x."""
@@ -18,8 +18,19 @@ class SBI_ONNX:
                                                     None,
                                                     providers=['CUDAExecutionProvider', 'CPUExecutionProvider'])
 
+    def release(self):
+        del self.session
+
     def __call__(self, img_):
         img = np.array(img_)
+
+        if len(img.shape) == 2:
+            img = np.concatenate((img, img, img), axis=2)
+        im_height, im_width, im_channel = img.shape
+        if im_channel == 1:
+            img = np.concatenate((img, img, img), axis=2)
+        elif im_channel == 4:
+            img = img[..., :3]
 
         # processing data
         img = cv2.resize(img, dsize=(self.settings.configs["WIDTH"], self.settings.configs["HEIGHT"]))

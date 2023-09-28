@@ -4,9 +4,8 @@ import onnxruntime
 import torch
 from math import ceil
 from itertools import product
-
+import gc
 from model.Settings import Settings
-
 
 def decode(loc, priors, variances):
     boxes = torch.cat((
@@ -99,6 +98,10 @@ class FaceBoxes_ONNX:
                                                     None,
                                                     providers=['CUDAExecutionProvider', 'CPUExecutionProvider'])
 
+    def release(self):
+        del self.session
+        gc.collect()
+
     def __call__(self, img_):
         img_raw = img_.copy()
         img_raw = np.array(img_)
@@ -121,9 +124,14 @@ class FaceBoxes_ONNX:
             img = np.float32(img_raw)
 
         # TODO: fix the problem of gray images (2 dimensions)
-
         # forward
-        im_height, im_width, _ = img.shape
+        if len(img.shape) == 2:
+            img = np.concatenate((img, img, img), axis=2)
+        im_height, im_width, im_channel = img.shape
+        if im_channel == 1:
+            img = np.concatenate((img, img, img), axis=2)
+        elif im_channel == 4:
+            img = img[..., :3]
         scale_bbox = torch.Tensor([img.shape[1], img.shape[0], img.shape[1], img.shape[0]])
         img -= (104, 117, 123)
         img = img.transpose(2, 0, 1)

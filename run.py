@@ -1,3 +1,5 @@
+import gc
+
 import cv2
 import numpy as np
 import streamlit as st
@@ -5,12 +7,33 @@ from PIL import Image
 from io import BytesIO
 from model import FaceBoxes_ONNX, SBI_ONNX
 
+
+def convert_image(img):
+    buf = BytesIO()
+    img.save(buf, format="PNG")
+    byte_im = buf.getvalue()
+    return byte_im
+
+
 class StreamlitApp:
     def __init__(self):
+        # basic
+        self.MAX_FILE_SIZE = 5 * 1024 * 1024
+        # app
+        self.my_upload = None
+        self.col2 = None
+        self.col1 = None
+        self.init_frontend()
+
+    def init_model(self):
         self.face_detector = FaceBoxes_ONNX()
         self.deepfake_detector = SBI_ONNX()
-        self.MAX_FILE_SIZE = 5 * 1024 * 1024
-        self.init_frontend()
+
+    def release_model(self):
+        self.face_detector.release()
+        self.deepfake_detector.release()
+
+        gc.collect()
 
     def init_frontend(self):
         st.set_page_config(layout="wide", page_title="Deepfake Detector")
@@ -32,24 +55,22 @@ class StreamlitApp:
                 self.fix_image(upload=self.my_upload)
         else:
             self.fix_image("./assets/images/face_image.jpg")
-
-    def convert_image(self, img):
-        buf = BytesIO()
-        img.save(buf, format="PNG")
-        byte_im = buf.getvalue()
-        return byte_im
-
+            # self.fix_image("/home/duong/Pictures/380896482_1297139684246200_6938699477526213175_n.png")
 
     def fix_image(self, upload):
         image = Image.open(upload)
         self.col1.write("Original Image :camera:")
         self.col1.image(image)
 
+        self.init_model()
+
         det = self.face_detector(image)
         det = self.face_detector.upsize(det, image)
         fixed = self.face_detector.viz_bbox(image, det)
         fixed = Image.fromarray(fixed)
         result = self.deepfake_detector(fixed)
+
+        self.release_model()
 
         # draw test
         result = cv2.putText(np.array(fixed), f"{result}", (100, 100), fontScale=1, fontFace=cv2.FONT_HERSHEY_DUPLEX,
@@ -59,7 +80,8 @@ class StreamlitApp:
         self.col2.write("Fixed Image :wrench:")
         self.col2.image(result)
         st.sidebar.markdown("\n")
-        st.sidebar.download_button("Download fixed image", self.convert_image(result), "fixed.png", "image/png")
+        st.sidebar.download_button("Download fixed image", convert_image(result), "fixed.png", "image/png")
+
 
 
 if __name__ == '__main__':

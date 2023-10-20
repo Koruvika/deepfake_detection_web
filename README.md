@@ -5,11 +5,24 @@
 - Put them to `app/ml/assets/checkpoints/`
 
 ## Install ⚙️
-If you use gpu, install by following shell:
+Firstly, you have to create `virtual enviroment` (if not have) by following below command:
+```shell
+python -m venv deepfake_env
+```
+Activate your virtual environment by below command:
+```shell
+# On Windows:
+deepfake_env\Scripts\activate
+
+# On Unix or MacOS:
+source deepfake_env/bin/activate
+```
+
+If you use GPU, install by following shell:
 ```shell
 pip install -r requirements_gpu.txt
 ```
-If you don't  any GPU, install by following shell:
+If you don't any GPU, install by following shell:
 ```shell
 pip install -r requirements.txt
 ```
@@ -22,6 +35,18 @@ uvicorn app.main:app --reload
 After that, open another terminal and run this command below for Streamlit Application:
 ```shell
 streamlit run app/frontend/run.py
+```
+
+## Run tests 🔨
+Tests for this project are defined in the `tests/` folder.
+```shell
+pytest app/tests/test_api
+```
+
+## Run pylint ✒️
+Check score for code syntax of `folder` or `filename`.
+```shell
+pylint ./app/{folder}/{filename}
 ```
 
 ## Tree directory 📁

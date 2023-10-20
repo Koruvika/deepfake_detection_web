@@ -15,7 +15,7 @@ def configure_logging():
     logger.setLevel(logging.DEBUG)
 
     # Create a file handler with a lower log level
-    file_handler = logging.FileHandler('logger.log')
+    file_handler = logging.FileHandler('app/logger/logger.log')
     file_handler.setLevel(logging.DEBUG)
 
     # Create a formatter and add it to the handlers

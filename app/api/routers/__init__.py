@@ -1,1 +1,0 @@
-"""Define all API router"""

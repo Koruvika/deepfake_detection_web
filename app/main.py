@@ -5,7 +5,8 @@ from fastapi import FastAPI
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
 from starlette.responses import Response
-from app.api.routers import model_route
+
+from app.api.routes.api import app as api_router
 from app.logger.logger import custom_logger
 
 class LoggingMiddleware(BaseHTTPMiddleware):
@@ -46,10 +47,10 @@ app = FastAPI(
 #     """Load model at startup"""
 #     app.state.model = load_model('app/resources/model_base.h5')
 
-@app.get("/", tags=['Welcome'])
+@app.get("/pbl6", tags=['Welcome'])
 async def hello():
     """Hello"""
-    return {"Message": "<3 WELCOME TO OUR PBL6: DEEPFAKE DETECTION <3"}
+    return {"message": "<3 WELCOME TO OUR PBL6: DEEPFAKE DETECTION <3"}
 
-app.include_router(model_route.router, prefix='/aimodel')
+app.include_router(api_router, prefix="/pbl6")
 app.add_middleware(LoggingMiddleware)

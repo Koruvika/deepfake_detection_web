@@ -7,13 +7,18 @@ import streamlit as st
 from PIL import Image
 from io import BytesIO
 import requests
+import pandas as pd
+import plotly.express as px
+import json
 
 class StreamlitApp:
     """Streamlit Application"""
     def __init__(self):
         self.column_1, self.column_2 = None, None
+        self.video_path = None
         self.my_upload = None
         self.result_image = None
+        self.result_video = None
         self.MAX_FILE_SIZE = 5 * 1024 * 1024
         self.init_frontend()
 
@@ -30,22 +35,32 @@ class StreamlitApp:
         st.sidebar.write("## Upload and download :gear:")
 
         self.column_1, self.column_2 = st.columns(2)
-        self.my_upload = st.sidebar.file_uploader("Upload an image", type=["png", "jpg", "jpeg"])
+        self.my_upload = st.sidebar.file_uploader("Upload an image or video", type=["png", "jpg", "jpeg", "mp4"])
 
     def run(self):
         """Run Streamlit application"""
         if self.my_upload is not None:
-            if self.my_upload.size > self.MAX_FILE_SIZE:
-                st.error("The uploaded file is too large. Please upload an image smaller than 5MB.")
-            else:
-                self.result_image = self.call_fastapi_api(self.my_upload.getvalue())
-                self.fix_image(upload_image=self.my_upload,
-                               result_image=self.result_image)
+            with st.spinner("Processing..."):
+                if self.my_upload.type.startswith("image"):
+                    if self.my_upload.size > self.MAX_FILE_SIZE:
+                        st.error("The uploaded file is too large. Please upload an image smaller than 5MB.")
+                    else:
+                        self.result_image = self.image_api_call(self.my_upload.getvalue())
+                        self.fix_image(upload_image=self.my_upload,
+                                       result_image=self.result_image)
+                elif self.my_upload.type.startswith("video"):
+                    self.result_video = self.video_api_call(self.my_upload.getvalue())
+                    self.video_path = self.save_uploaded_video(self.my_upload)
+                    json_result = self.result_video.decode('utf-8', errors='ignore')
+                    result_dict = json.loads(json_result)
+                    result_percentages = result_dict['percentages']
+                    self.draw_bar_chart(result_percentages)
+
         else:
-            init_path = "app/assets/images/pristine/face_image.jpg"
+            init_path = "app/ml/assets/images/pristine/face_image.jpg"
             with open(init_path, "rb") as image_file:
                 image_data = image_file.read()
-            self.result_image = self.call_fastapi_api(BytesIO(image_data))
+            self.result_image = self.image_api_call(BytesIO(image_data))
             self.fix_image(upload_image=init_path,
                            result_image=self.result_image)
 
@@ -56,11 +71,11 @@ class StreamlitApp:
         byte_img = buf.getvalue()
         return byte_img
 
-    def call_fastapi_api(self, image_upload):
+    def image_api_call(self, image_upload):
         """Call API to process image"""
 
-        url = "http://127.0.0.1:8000/aimodel/deepfake_detection"
-        files = {'file': image_upload}
+        url = "http://127.0.0.1:8000/pbl6/deepfake_detection/image"
+        files = {'input_image': image_upload}
         response = requests.post(url, files=files)
 
         if response.status_code == 200:
@@ -70,6 +85,52 @@ class StreamlitApp:
         else:
             st.error("Error calling Deepfake Detection API!")
             return None
+
+    def video_api_call(self, video_upload):
+        """Call API to process video"""
+
+        url = "http://127.0.0.1:8000/pbl6/deepfake_detection/video"
+        files = {'video': video_upload}
+        response = requests.post(url, files=files)
+
+        if response.status_code == 200:
+            result = response.content
+            return result
+        else:
+            st.error("Error calling Deepfake Detection API!")
+            return None
+
+    def save_uploaded_video(self, uploaded_file):
+        """Save uploaded video"""
+        with open(f'app/resources/uploads/{uploaded_file.name}', "wb") as f:
+            f.write(uploaded_file.getvalue())
+        return f'app/resources/uploads/{uploaded_file.name}'
+    def display_video(self, video_path):
+        """Display video"""
+        video_bytes = open(video_path, "rb").read()
+        self.column_1.video(video_bytes, format="video/mp4")
+
+    def draw_bar_chart(self, result_video):
+        """Draw bar chart"""
+        list_frames = []
+        for i in range(len(result_video)):
+            list_frames.append(f"Frame {i+1}")
+
+        chart = pd.DataFrame({'Frames': list_frames,
+                              'Deepfake Percentage': result_video})
+
+        # self.column_2.bar_chart(chart.set_index('Frames')['Deepfake Percentage'])
+        chart = chart.set_index('Frames').loc[list_frames].reset_index()
+
+        # Tạo biểu đồ cột
+        fig = px.bar(chart, x='Frames', y='Deepfake Percentage')
+        fig.update_traces(marker_color=['red' if val > 50 else 'blue' for val in chart['Deepfake Percentage']])
+
+        self.display_video(self.video_path)
+
+        # Hiển thị biểu đồ trong column_2
+        self.column_2.write("Bar Chart :bar_chart:")
+        self.column_2.plotly_chart(fig, use_container_width=True)
 
     def fix_image(self, upload_image, result_image):
         """Process image"""

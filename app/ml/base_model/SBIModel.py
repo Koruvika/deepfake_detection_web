@@ -33,7 +33,8 @@ class SBI_ONNX:
         out = softmax(out)
 
         res = np.argmax(out)
+        percentage = out[0, 1]
         if res == 0:
-            return "Pristine"
+            return ["Pristine", percentage]
         else:
-            return "Deepfake"
+            return ["Deepfake", percentage]

@@ -25,9 +25,11 @@ class ModelService:
             result, percentage = self.deepfake_detector(fixed)
 
             # draw test
-            result_image = cv2.putText(np.array(fixed_image), f"{result}", (100, 100),
-                                       fontScale=1, fontFace=cv2.FONT_HERSHEY_DUPLEX,
-                                       color=(255, 0, 0), thickness=2, lineType=cv2.LINE_AA)
+            font_size = float(np.min(fixed.shape[:-1]) * 0.002)
+            position = int(np.min(fixed.shape[:-1])/10)
+            result_image = cv2.putText(np.array(fixed_image), f"{result}", (position, position),
+                                       fontScale=font_size, fontFace=cv2.FONT_HERSHEY_DUPLEX,
+                                       color=(255, 0, 0), thickness=1, lineType=cv2.LINE_AA)
             result_image = Image.fromarray(result_image)
 
             # Convert image into byte PNG

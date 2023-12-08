@@ -1,6 +1,9 @@
 """Main FastAPI Application"""
 # pylint disable=unused-variable
 # pylint disable=unused-argument
+from pyngrok import ngrok
+import nest_asyncio
+
 from fastapi import FastAPI
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
@@ -54,3 +57,9 @@ async def hello():
 
 app.include_router(api_router, prefix="/pbl6")
 app.add_middleware(LoggingMiddleware)
+
+if __name__ == "__main__":
+    ngrok_tunnel = ngrok.connect(8000)
+    print('Public URL:', ngrok_tunnel.public_url)
+    nest_asyncio.apply()
+    uvicorn.run(app, port=8000)

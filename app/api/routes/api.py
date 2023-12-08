@@ -1,7 +1,7 @@
 """API Route"""
 
 from fastapi import APIRouter
-from app.api.routes import model_route
+from app.api.routes import model_route, upload_route
 
 app = APIRouter()
 
@@ -12,3 +12,8 @@ app.include_router(
     prefix="/deepfake_detection"
 )
 
+# Upload image route
+app.include_router(
+    upload_route.router,
+    tags=['Upload Image'],
+)

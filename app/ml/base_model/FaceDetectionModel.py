@@ -207,5 +207,5 @@ class FaceBoxes_ONNX:
             cv2.rectangle(img, (b[0], b[1]), (b[2], b[3]), (0, 0, 255), 2)
             cx = b[0]
             cy = b[1] + 12
-            cv2.putText(img, text, (cx, cy), cv2.FONT_HERSHEY_DUPLEX, 0.5, (255, 255, 255))
+            # cv2.putText(img, text, (cx, cy), cv2.FONT_HERSHEY_DUPLEX, 0.5, (255, 255, 255))
         return img
